@@ -3,10 +3,10 @@ import { TextStyle, ViewStyle } from "react-native"
 import { Screen, Text } from "../../components"
 import { spacing } from "../../theme"
 
-export const HomeScreen: FC<any> = function HomeScreen(_props) {
+export const AnalysisScreen: FC<any> = function AnalysisScreen(_props) {
   return (
     <Screen preset="scroll" contentContainerStyle={$container} safeAreaEdges={["top"]}>
-      <Text preset="heading" text="Hello there! 👋" style={$title} />
+      <Text preset="heading" text="Analysis 🕵️" style={$title} />
     </Screen>
   )
 }

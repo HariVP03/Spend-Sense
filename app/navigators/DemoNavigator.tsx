@@ -3,31 +3,26 @@ import { CompositeScreenProps } from "@react-navigation/native"
 import React from "react"
 import { TextStyle, ViewStyle } from "react-native"
 import { useSafeAreaInsets } from "react-native-safe-area-context"
-import { Icon } from "../components"
-import { translate } from "../i18n"
-import { DemoCommunityScreen, DemoShowroomScreen, DemoDebugScreen } from "../screens"
+import { DemoCommunityScreen } from "../screens"
 import { DemoPodcastListScreen } from "../screens/DemoPodcastListScreen"
 import { colors, spacing, typography } from "../theme"
 import { AppStackParamList, AppStackScreenProps } from "./AppNavigator"
+import { AntDesign, Feather, Ionicons } from "@expo/vector-icons"
+import { HomeScreen } from "../screens/Home"
+import { AnalysisScreen } from "../screens/Analysis"
 
-export type DemoTabParamList = {
-  DemoCommunity: undefined
-  DemoShowroom: { queryIndex?: string; itemIndex?: string }
-  DemoDebug: undefined
-  DemoPodcastList: undefined
+export type TabParamList = {
+  HomeScreen: undefined
+  AnalysisScreen: undefined
+  SettingsScreen: undefined
 }
 
-/**
- * Helper for automatically generating navigation prop types for each route.
- *
- * More info: https://reactnavigation.org/docs/typescript/#organizing-types
- */
-export type DemoTabScreenProps<T extends keyof DemoTabParamList> = CompositeScreenProps<
-  BottomTabScreenProps<DemoTabParamList, T>,
+export type TabScreenProps<T extends keyof TabParamList> = CompositeScreenProps<
+  BottomTabScreenProps<TabParamList, T>,
   AppStackScreenProps<keyof AppStackParamList>
 >
 
-const Tab = createBottomTabNavigator<DemoTabParamList>()
+const Tab = createBottomTabNavigator<TabParamList>()
 
 export function DemoNavigator() {
   const { bottom } = useSafeAreaInsets()
@@ -45,38 +40,35 @@ export function DemoNavigator() {
       }}
     >
       <Tab.Screen
-        name="DemoShowroom"
-        component={DemoShowroomScreen}
+        name="HomeScreen"
+        component={HomeScreen}
         options={{
-          tabBarLabel: translate("demoNavigator.componentsTab"),
-          tabBarIcon: ({ focused }) => <Icon icon="components" color={focused && colors.tint} />,
+          tabBarLabel: "Home",
+          tabBarIcon: ({ focused }) => (
+            <Feather name="home" size={24} color={focused && colors.tint} />
+          ),
         }}
       />
 
       <Tab.Screen
-        name="DemoCommunity"
-        component={DemoCommunityScreen}
+        name="AnalysisScreen"
+        component={AnalysisScreen}
         options={{
-          tabBarLabel: translate("demoNavigator.communityTab"),
-          tabBarIcon: ({ focused }) => <Icon icon="community" color={focused && colors.tint} />,
+          tabBarLabel: "Analysis",
+          tabBarIcon: ({ focused }) => (
+            <Ionicons name="newspaper-outline" size={24} color={focused && colors.tint} />
+          ),
         }}
       />
 
       <Tab.Screen
-        name="DemoPodcastList"
+        name="SettingsScreen"
         component={DemoPodcastListScreen}
         options={{
-          tabBarLabel: translate("demoNavigator.podcastListTab"),
-          tabBarIcon: ({ focused }) => <Icon icon="podcast" color={focused && colors.tint} />,
-        }}
-      />
-
-      <Tab.Screen
-        name="DemoDebug"
-        component={DemoDebugScreen}
-        options={{
-          tabBarLabel: translate("demoNavigator.debugTab"),
-          tabBarIcon: ({ focused }) => <Icon icon="debug" color={focused && colors.tint} />,
+          tabBarLabel: "Settings",
+          tabBarIcon: ({ focused }) => (
+            <AntDesign size={24} name="setting" color={focused && colors.tint} />
+          ),
         }}
       />
     </Tab.Navigator>
