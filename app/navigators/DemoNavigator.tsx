@@ -15,7 +15,7 @@ import { FriendsScreen } from "../screens/Friends"
 export type TabParamList = {
   HomeScreen: undefined
   AnalysisScreen: undefined
-  SettingsScreen: undefined
+  FriendsScreen: undefined
 }
 
 export type TabScreenProps<T extends keyof TabParamList> = CompositeScreenProps<
@@ -63,12 +63,12 @@ export function DemoNavigator() {
       />
 
       <Tab.Screen
-        name="SettingsScreen"
+        name="FriendsScreen"
         component={FriendsScreen}
         options={{
-          tabBarLabel: "Settings",
+          tabBarLabel: "Friends",
           tabBarIcon: ({ focused }) => (
-            <AntDesign size={24} name="setting" color={focused && colors.tint} />
+            <Ionicons name="people-outline" size={24} color={focused && colors.tint} />
           ),
         }}
       />
