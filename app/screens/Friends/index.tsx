@@ -1,5 +1,5 @@
 import { observer } from "mobx-react-lite"
-import React, { FC, useEffect, useMemo } from "react"
+import React, { FC, useEffect, useMemo, useState } from "react"
 import {
   AccessibilityProps,
   ActivityIndicator,
@@ -19,48 +19,88 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated"
-import { Button, Card, EmptyState, Icon, Screen, Text, Toggle } from "../components"
-import { isRTL, translate } from "../i18n"
-import { useStores } from "../models"
-import { Episode } from "../models/Episode"
-import { colors, spacing } from "../theme"
-import { delay } from "../utils/delay"
-import { openLinkInBrowser } from "../utils/openLinkInBrowser"
+import { Button, Card, EmptyState, Icon, Screen, Text } from "../../components"
+import { isRTL, translate } from "../../i18n"
+import { colors, spacing } from "../../theme"
+import { delay } from "../../utils/delay"
+import { load, save } from "../../utils/storage"
 
 const ICON_SIZE = 14
 
-const rnrImage1 = require("../../assets/images/rnr-image-1.png")
-const rnrImage2 = require("../../assets/images/rnr-image-2.png")
-const rnrImage3 = require("../../assets/images/rnr-image-3.png")
-const rnrImages = [rnrImage1, rnrImage2, rnrImage3]
+const rnrImage1 = require("../../../assets/images/pic-1.jpg")
+const rnrImage2 = require("../../../assets/images/pic-2.jpg")
+const rnrImage3 = require("../../../assets/images/pic-3.jpg")
 
-export const DemoPodcastListScreen: FC<any> = observer(function DemoPodcastListScreen(_props) {
-  const { episodeStore } = useStores()
+interface Friend {
+  id: string
+  name: string
+  achievement: string
+  date: string
+  image: any
+  liked: boolean
+}
+
+const defaultFriends: Friend[] = [
+  {
+    id: "1",
+    name: "John Doe",
+    achievement: "Completed their saving goal",
+    date: "2 days ago",
+    image: rnrImage1,
+    liked: false,
+  },
+  {
+    id: "2",
+    name: "Jane Doe",
+    achievement: "Started a new goal",
+    date: "1 week ago",
+    image: rnrImage2,
+    liked: false,
+  },
+  {
+    id: "3",
+    name: "Luffy",
+    achievement: "Completed their saving goal",
+    date: "2 weeks ago",
+    image: rnrImage3,
+    liked: false,
+  },
+]
+
+export const FriendsScreen: FC<any> = observer(function FriendsScreen(_props) {
+  const [friends, setFriends] = useState<Friend[]>(defaultFriends)
+
+  useEffect(() => {
+    load("friends").then((friends) => {
+      if (!friends) {
+        setFriends(defaultFriends)
+        save("friends", defaultFriends)
+
+        return
+      }
+
+      setFriends(friends)
+    })
+  }, [])
+
+  useEffect(() => {
+    save("friends", friends)
+  }, [friends])
 
   const [refreshing, setRefreshing] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
 
-  // initially, kick off a background refresh without the refreshing UI
-  useEffect(() => {
-    ;(async function load() {
-      setIsLoading(true)
-      await episodeStore.fetchEpisodes()
-      setIsLoading(false)
-    })()
-  }, [episodeStore])
-
   // simulate a longer refresh, if the refresh is too fast for UX
   async function manualRefresh() {
     setRefreshing(true)
-    await Promise.all([episodeStore.fetchEpisodes(), delay(750)])
+    await Promise.all([delay(750)])
     setRefreshing(false)
   }
 
   return (
     <Screen preset="fixed" safeAreaEdges={["top"]} contentContainerStyle={$screenContentContainer}>
-      <FlatList<Episode>
-        data={episodeStore.episodesForList}
-        extraData={episodeStore.favorites.length + episodeStore.episodes.length}
+      <FlatList<Friend>
+        data={friends}
         contentContainerStyle={$flatListContentContainer}
         refreshing={refreshing}
         onRefresh={manualRefresh}
@@ -71,17 +111,9 @@ export const DemoPodcastListScreen: FC<any> = observer(function DemoPodcastListS
             <EmptyState
               preset="generic"
               style={$emptyState}
-              headingTx={
-                episodeStore.favoritesOnly
-                  ? "demoPodcastListScreen.noFavoritesEmptyState.heading"
-                  : undefined
-              }
-              contentTx={
-                episodeStore.favoritesOnly
-                  ? "demoPodcastListScreen.noFavoritesEmptyState.content"
-                  : undefined
-              }
-              button={episodeStore.favoritesOnly ? null : undefined}
+              headingTx={"demoPodcastListScreen.noFavoritesEmptyState.heading"}
+              contentTx={"demoPodcastListScreen.noFavoritesEmptyState.content"}
+              button={null}
               buttonOnPress={manualRefresh}
               imageStyle={$emptyStateImage}
               ImageProps={{ resizeMode: "contain" }}
@@ -90,30 +122,18 @@ export const DemoPodcastListScreen: FC<any> = observer(function DemoPodcastListS
         }
         ListHeaderComponent={
           <View style={$heading}>
-            <Text preset="heading" tx="demoPodcastListScreen.title" />
-            {(episodeStore.favoritesOnly || episodeStore.episodesForList.length > 0) && (
-              <View style={$toggle}>
-                <Toggle
-                  value={episodeStore.favoritesOnly}
-                  onValueChange={() =>
-                    episodeStore.setProp("favoritesOnly", !episodeStore.favoritesOnly)
-                  }
-                  variant="switch"
-                  labelTx="demoPodcastListScreen.onlyFavorites"
-                  labelPosition="left"
-                  labelStyle={$labelStyle}
-                  accessibilityLabel={translate("demoPodcastListScreen.accessibility.switch")}
-                />
-              </View>
-            )}
+            <Text preset="heading" text="Friends 👯‍♀️" />
           </View>
         }
         renderItem={({ item }) => (
-          <EpisodeCard
-            key={item.guid}
-            episode={item}
-            isFavorite={episodeStore.hasFavorite(item)}
-            onPressFavorite={() => episodeStore.toggleFavorite(item)}
+          <FriendCard
+            key={item.id}
+            friend={item}
+            onPressFavorite={() =>
+              setFriends((prev) =>
+                prev.map((f) => (f.id === item.id ? { ...f, liked: !f.liked } : f)),
+              )
+            }
           />
         )}
       />
@@ -121,20 +141,15 @@ export const DemoPodcastListScreen: FC<any> = observer(function DemoPodcastListS
   )
 })
 
-const EpisodeCard = observer(function EpisodeCard({
-  episode,
-  isFavorite,
+const FriendCard = observer(function FriendCard({
+  friend,
   onPressFavorite,
 }: {
-  episode: Episode
+  friend: Friend
   onPressFavorite: () => void
-  isFavorite: boolean
 }) {
+  const isFavorite = friend.liked
   const liked = useSharedValue(isFavorite ? 1 : 0)
-
-  const imageUri = useMemo(() => {
-    return rnrImages[Math.floor(Math.random() * rnrImages.length)]
-  }, [])
 
   // Grey heart
   const animatedLikeButtonStyles = useAnimatedStyle(() => {
@@ -168,13 +183,13 @@ const EpisodeCard = observer(function EpisodeCard({
     () =>
       Platform.select<AccessibilityProps>({
         ios: {
-          accessibilityLabel: episode.title,
+          accessibilityLabel: friend.name,
           accessibilityHint: translate("demoPodcastListScreen.accessibility.cardHint", {
             action: isFavorite ? "unfavorite" : "favorite",
           }),
         },
         android: {
-          accessibilityLabel: episode.title,
+          accessibilityLabel: friend.name,
           accessibilityActions: [
             {
               name: "longpress",
@@ -188,16 +203,12 @@ const EpisodeCard = observer(function EpisodeCard({
           },
         },
       }),
-    [episode, isFavorite],
+    [friend, isFavorite],
   )
 
   const handlePressFavorite = () => {
     onPressFavorite()
     liked.value = withSpring(liked.value ? 0 : 1)
-  }
-
-  const handlePressCard = () => {
-    openLinkInBrowser(episode.enclosure.link)
   }
 
   const ButtonLeftAccessory = useMemo(
@@ -231,50 +242,32 @@ const EpisodeCard = observer(function EpisodeCard({
     <Card
       style={$item}
       verticalAlignment="force-footer-bottom"
-      onPress={handlePressCard}
-      onLongPress={handlePressFavorite}
       HeadingComponent={
         <View style={$metadata}>
-          <Text
-            style={$metadataText}
-            size="xxs"
-            accessibilityLabel={episode.datePublished.accessibilityLabel}
-          >
-            {episode.datePublished.textLabel}
+          <Text style={$metadataText} size="xxs">
+            {friend.name}
           </Text>
-          <Text
-            style={$metadataText}
-            size="xxs"
-            accessibilityLabel={episode.duration.accessibilityLabel}
-          >
-            {episode.duration.textLabel}
+          <Text style={$metadataText} size="xxs">
+            {friend.date}
           </Text>
         </View>
       }
-      content={`${episode.parsedTitleAndSubtitle.title} - ${episode.parsedTitleAndSubtitle.subtitle}`}
+      content={friend.achievement}
       {...accessibilityHintProps}
-      RightComponent={<Image source={imageUri} style={$itemThumbnail} />}
+      RightComponent={<Image source={friend.image} style={$itemThumbnail} />}
       FooterComponent={
         <Button
           onPress={handlePressFavorite}
           onLongPress={handlePressFavorite}
           style={[$favoriteButton, isFavorite && $unFavoriteButton]}
-          accessibilityLabel={
-            isFavorite
-              ? translate("demoPodcastListScreen.accessibility.unfavoriteIcon")
-              : translate("demoPodcastListScreen.accessibility.favoriteIcon")
-          }
+          accessibilityLabel={isFavorite ? "Unlike" : "Like"}
           LeftAccessory={ButtonLeftAccessory}
         >
           <Text
             size="xxs"
-            accessibilityLabel={episode.duration.accessibilityLabel}
+            accessibilityLabel={"episode.duration.accessibilityLabel"}
             weight="medium"
-            text={
-              isFavorite
-                ? translate("demoPodcastListScreen.unfavoriteButton")
-                : translate("demoPodcastListScreen.favoriteButton")
-            }
+            text={isFavorite ? "Unlike" : "Like"}
           />
         </Button>
       }
@@ -282,7 +275,6 @@ const EpisodeCard = observer(function EpisodeCard({
   )
 })
 
-// #region Styles
 const $screenContentContainer: ViewStyle = {
   flex: 1,
 }
@@ -307,14 +299,8 @@ const $itemThumbnail: ImageStyle = {
   marginTop: spacing.small,
   borderRadius: 50,
   alignSelf: "flex-start",
-}
-
-const $toggle: ViewStyle = {
-  marginTop: spacing.medium,
-}
-
-const $labelStyle: TextStyle = {
-  textAlign: "left",
+  height: 50,
+  width: 50,
 }
 
 const $iconContainer: ViewStyle = {

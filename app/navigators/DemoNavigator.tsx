@@ -10,6 +10,7 @@ import { AppStackParamList, AppStackScreenProps } from "./AppNavigator"
 import { AntDesign, Feather, Ionicons } from "@expo/vector-icons"
 import { HomeScreen } from "../screens/Home"
 import { AnalysisScreen } from "../screens/Analysis"
+import { FriendsScreen } from "../screens/Friends"
 
 export type TabParamList = {
   HomeScreen: undefined
@@ -63,7 +64,7 @@ export function DemoNavigator() {
 
       <Tab.Screen
         name="SettingsScreen"
-        component={DemoPodcastListScreen}
+        component={FriendsScreen}
         options={{
           tabBarLabel: "Settings",
           tabBarIcon: ({ focused }) => (

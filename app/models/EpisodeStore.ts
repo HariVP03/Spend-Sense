@@ -12,13 +12,24 @@ export const EpisodeStoreModel = types
   })
   .actions(withSetPropAction)
   .actions((store) => ({
-    async fetchEpisodes() {
-      const response = await api.getEpisodes()
-      if (response.kind === "ok") {
-        store.setProp("episodes", response.episodes)
-      } else {
-        console.tron.error(`Error fetching episodes: ${JSON.stringify(response)}`, [])
-      }
+    fetchEpisodes() {
+      return [
+        {
+          id: 1,
+          name: "Aman",
+          achievement: "Walked 10k steps",
+        },
+        {
+          id: 2,
+          name: "Shanks",
+          achievement: "Walked 13k steps",
+        },
+        {
+          id: 3,
+          name: "Luffy",
+          achievement: "Walked 23k steps",
+        },
+      ]
     },
     addFavorite(episode: Episode) {
       store.favorites.push(episode)

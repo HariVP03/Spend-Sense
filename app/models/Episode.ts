@@ -17,23 +17,16 @@ interface Enclosure {
 export const EpisodeModel = types
   .model("Episode")
   .props({
-    guid: types.identifier,
-    title: "",
-    pubDate: "", // Ex: 2022-08-12 21:05:36
-    link: "",
-    author: "",
-    thumbnail: "",
-    description: "",
-    content: "",
-    enclosure: types.frozen<Enclosure>(),
-    categories: types.array(types.string),
+    id: types.identifierNumber,
+    name: types.string,
+    achievement: types.string,
   })
   .actions(withSetPropAction)
   .views((episode) => ({
     get parsedTitleAndSubtitle() {
-      const defaultValue = { title: episode.title?.trim(), subtitle: "" }
+      const defaultValue = { name: episode.name?.trim(), achievement: "" }
 
-      if (!defaultValue.title) return defaultValue
+      if (!defaultValue.name) return defaultValue
 
       const titleMatches = defaultValue.title.match(/^(RNR.*\d)(?: - )(.*$)/)
 
